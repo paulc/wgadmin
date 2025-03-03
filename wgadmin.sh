@@ -285,9 +285,16 @@ update_wg() {
         cat "${WG_BASE}/${WG_INTERFACE}.conf"
         find "${WG_BASE}/${WG_INTERFACE}" -name "server*" | xargs cat
     ) > "${_conf}"
-    wg syncconf ${WG_INTERFACE} "${_conf}"
+    /usr/local/bin/wg syncconf ${WG_INTERFACE} "${_conf}"
     rm -f "${_conf}"
-    wg show ${WG_INTERFACE}
+    /usr/local/bin/wg show ${WG_INTERFACE}
+}
+
+list_clients() {
+    find "${WG_BASE}/${WG_INTERFACE}" -name "client*" | xargs -n1 awk '
+        /^# CLIENT:/    { client=$NF }
+        /Address =/     { sub(/Address = /,""); address=$0 }
+        END             { printf("%-16s : %s\n",client,address) }'
 }
 
 add_client() { # [-4] [-6] [-e eg_endpoint] [-p wg_port] [-m wg_mtu] [-d wg_dns] <name>
