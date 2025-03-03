@@ -278,7 +278,19 @@ rm_client() { # <client>
     rm "${_config}" "${_server}" && info "Client ${_client} removed"
 }
 
-update_wg() {
+setconf() {
+    local _conf=$(mktemp)
+    trap "rm -f ${_conf}" EXIT
+    ( 
+        cat "${WG_BASE}/${WG_INTERFACE}.conf"
+        find "${WG_BASE}/${WG_INTERFACE}" -name "server*" | xargs cat
+    ) > "${_conf}"
+    /usr/local/bin/wg syncconf ${WG_INTERFACE} "${_conf}"
+    rm -f "${_conf}"
+    /usr/local/bin/wg show ${WG_INTERFACE}
+}
+
+syncconf() {
     local _conf=$(mktemp)
     trap "rm -f ${_conf}" EXIT
     ( 
